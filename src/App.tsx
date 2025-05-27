@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import WhatsAppNumbers from "./pages/WhatsAppNumbers";
 import ChatbotConfig from "./pages/ChatbotConfig";
 import ChatbotManagement from "./pages/ChatbotManagement";
+import ShopeeIntegration from "./pages/ShopeeIntegration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/whatsapp-numbers" element={<WhatsAppNumbers />} />
           <Route path="/chatbot-config" element={<ChatbotConfig />} />
           <Route path="/chatbot-management" element={<ChatbotManagement />} />
+          <Route path="/shopee-integration" element={<ShopeeIntegration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
