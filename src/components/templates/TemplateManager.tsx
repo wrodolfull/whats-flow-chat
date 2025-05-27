@@ -123,7 +123,7 @@ const TemplateManager = () => {
                   {selectedTemplateData.variables.map((variable, index) => (
                     <div key={variable}>
                       <Label htmlFor={variable} className="text-xs text-gray-600">
-                        {{index + 1}} - {variable}
+                        {`{{${index + 1}}} - ${variable}`}
                       </Label>
                       <Input
                         id={variable}
