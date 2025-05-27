@@ -294,7 +294,7 @@ const Admin = () => {
                         <span className="font-medium">Boas-vindas</span>
                         <Badge>Aprovado</Badge>
                       </div>
-                      <p className="text-sm text-gray-600">Olá {{1}}, bem-vindo à nossa empresa!</p>
+                      <p className="text-sm text-gray-600">Olá, bem-vindo à nossa empresa!</p>
                     </div>
                     
                     <div className="border rounded-lg p-3">
@@ -302,7 +302,7 @@ const Admin = () => {
                         <span className="font-medium">Confirmação de Pedido</span>
                         <Badge>Aprovado</Badge>
                       </div>
-                      <p className="text-sm text-gray-600">Seu pedido #{{1}} foi confirmado e será entregue em {{2}}.</p>
+                      <p className="text-sm text-gray-600">Seu pedido foi confirmado e será entregue em breve.</p>
                     </div>
                   </div>
                   
