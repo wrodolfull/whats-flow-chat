@@ -26,6 +26,7 @@ interface WhatsAppNumber {
   assignedAgent?: string;
   webhookUrl: string;
   verifyToken: string;
+  chatbotId?: string;
 }
 
 interface WhatsAppNumberModalProps {
@@ -43,17 +44,30 @@ const WhatsAppNumberModal = ({
   onNumberUpdated, 
   editingNumber 
 }: WhatsAppNumberModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    phoneNumber: string;
+    displayName: string;
+    phoneNumberId: string;
+    accessToken: string;
+    businessAccountId: string;
+    status: 'active' | 'inactive' | 'pending';
+    assignedAgent: string;
+    webhookUrl: string;
+    verifyToken: string;
+    chatbotId: string;
+  }>({
     phoneNumber: '',
     displayName: '',
     phoneNumberId: '',
     accessToken: '',
     businessAccountId: '',
-    status: 'active' as const,
+    status: 'active',
     assignedAgent: '',
     webhookUrl: '',
-    verifyToken: ''
+    verifyToken: '',
+    chatbotId: ''
   });
+  
   const { toast } = useToast();
 
   const agents = [
@@ -61,6 +75,13 @@ const WhatsAppNumberModal = ({
     'Maria Santos', 
     'Pedro Costa',
     'Ana Oliveira'
+  ];
+
+  const chatbots = [
+    { id: '1', name: 'Suporte Geral' },
+    { id: '2', name: 'Vendas' },
+    { id: '3', name: 'Atendimento Técnico' },
+    { id: '4', name: 'Cobrança' }
   ];
 
   useEffect(() => {
@@ -74,7 +95,8 @@ const WhatsAppNumberModal = ({
         status: editingNumber.status,
         assignedAgent: editingNumber.assignedAgent || '',
         webhookUrl: editingNumber.webhookUrl,
-        verifyToken: editingNumber.verifyToken
+        verifyToken: editingNumber.verifyToken,
+        chatbotId: editingNumber.chatbotId || ''
       });
     } else {
       setFormData({
@@ -86,7 +108,8 @@ const WhatsAppNumberModal = ({
         status: 'active',
         assignedAgent: '',
         webhookUrl: '',
-        verifyToken: ''
+        verifyToken: '',
+        chatbotId: ''
       });
     }
   }, [editingNumber, open]);
@@ -190,21 +213,40 @@ const WhatsAppNumberModal = ({
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="assigned-agent">Agente Responsável</Label>
-            <Select
-              value={formData.assignedAgent}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, assignedAgent: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um agente" />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map((agent) => (
-                  <SelectItem key={agent} value={agent}>{agent}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="assigned-agent">Agente Responsável</Label>
+              <Select
+                value={formData.assignedAgent}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, assignedAgent: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um agente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map((agent) => (
+                    <SelectItem key={agent} value={agent}>{agent}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="chatbot">Chatbot Vinculado</Label>
+              <Select
+                value={formData.chatbotId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, chatbotId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um chatbot" />
+                </SelectTrigger>
+                <SelectContent>
+                  {chatbots.map((bot) => (
+                    <SelectItem key={bot.id} value={bot.id}>{bot.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="space-y-2">
