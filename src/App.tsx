@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,6 +14,7 @@ import WhatsAppNumbers from "./pages/WhatsAppNumbers";
 import ChatbotConfig from "./pages/ChatbotConfig";
 import ChatbotManagement from "./pages/ChatbotManagement";
 import ShopeeIntegration from "./pages/ShopeeIntegration";
+import Flows from "./pages/Flows";
 import FlowBuilder from "./pages/FlowBuilder";
 import NotFound from "./pages/NotFound";
 
@@ -68,6 +68,14 @@ const App = () => (
                 <AppLayout>
                   <ProtectedRoute permission="chatbot.view">
                     <ChatbotManagement />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/flows" element={
+                <AppLayout>
+                  <ProtectedRoute permission="chatbot.manage">
+                    <Flows />
                   </ProtectedRoute>
                 </AppLayout>
               } />
