@@ -1,10 +1,13 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { AuthProvider } from "@/hooks/useAuth";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
@@ -20,24 +23,77 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="dohoo-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/whatsapp-numbers" element={<WhatsAppNumbers />} />
-            <Route path="/chatbot-config" element={<ChatbotConfig />} />
-            <Route path="/chatbot-management" element={<ChatbotManagement />} />
-            <Route path="/shopee-integration" element={<ShopeeIntegration />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={
+                <AppLayout>
+                  <ProtectedRoute permission="dashboard.view">
+                    <Dashboard />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/chat" element={
+                <AppLayout>
+                  <ProtectedRoute permission="chat.view">
+                    <Chat />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/whatsapp-numbers" element={
+                <AppLayout>
+                  <ProtectedRoute permission="whatsapp.view">
+                    <WhatsAppNumbers />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/chatbot-config" element={
+                <AppLayout>
+                  <ProtectedRoute permission="chatbot.manage">
+                    <ChatbotConfig />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/chatbot-management" element={
+                <AppLayout>
+                  <ProtectedRoute permission="chatbot.view">
+                    <ChatbotManagement />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/shopee-integration" element={
+                <AppLayout>
+                  <ProtectedRoute permission="shopee.view">
+                    <ShopeeIntegration />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/admin" element={
+                <AppLayout>
+                  <ProtectedRoute permission="admin.view">
+                    <Admin />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
