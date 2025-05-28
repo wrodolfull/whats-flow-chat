@@ -3,7 +3,6 @@ import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { Sonner } from '@/components/ui/sonner';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,7 +18,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         </SidebarInset>
       </div>
       <Toaster />
-      <Sonner />
     </SidebarProvider>
   );
 }

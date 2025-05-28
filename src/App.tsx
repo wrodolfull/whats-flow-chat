@@ -1,6 +1,5 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -16,6 +15,7 @@ import WhatsAppNumbers from "./pages/WhatsAppNumbers";
 import ChatbotConfig from "./pages/ChatbotConfig";
 import ChatbotManagement from "./pages/ChatbotManagement";
 import ShopeeIntegration from "./pages/ShopeeIntegration";
+import FlowBuilder from "./pages/FlowBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,7 +26,6 @@ const App = () => (
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -69,6 +68,14 @@ const App = () => (
                 <AppLayout>
                   <ProtectedRoute permission="chatbot.view">
                     <ChatbotManagement />
+                  </ProtectedRoute>
+                </AppLayout>
+              } />
+              
+              <Route path="/flow-builder" element={
+                <AppLayout>
+                  <ProtectedRoute permission="chatbot.manage">
+                    <FlowBuilder />
                   </ProtectedRoute>
                 </AppLayout>
               } />
