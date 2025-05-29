@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Settings } from 'lucide-react';
+import { Bell, Settings, MessageSquare } from 'lucide-react';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import ChatWindow from '@/components/chat/ChatWindow';
 
@@ -13,15 +13,18 @@ const Chat = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-slate-50">
       {/* Header */}
-      <div className="bg-card border-b p-4 shadow-sm">
+      <div className="bg-white border-b px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h2 className="text-lg font-semibold">Conversas</h2>
+            <div className="flex items-center gap-3">
+              <MessageSquare className="h-6 w-6 text-blue-600" />
+              <h2 className="text-xl font-semibold text-slate-900">Conversas</h2>
+            </div>
             {selectedChat && (
-              <Badge variant="outline">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                 Conversa Ativa
               </Badge>
             )}
@@ -29,7 +32,7 @@ const Chat = () => {
           
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
                 <Bell className="h-5 w-5" />
               </Button>
               <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -39,7 +42,7 @@ const Chat = () => {
             
             <ThemeToggle />
             
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
               <Settings className="h-5 w-5" />
             </Button>
           </div>
@@ -58,11 +61,13 @@ const Chat = () => {
           {selectedChat ? (
             <ChatWindow chatId={selectedChat} />
           ) : (
-            <div className="h-full flex items-center justify-center">
+            <div className="h-full flex items-center justify-center bg-white">
               <div className="text-center">
-                <div className="text-6xl mb-4">💬</div>
-                <h3 className="text-xl font-semibold mb-2">Selecione uma conversa</h3>
-                <p className="text-muted-foreground">Escolha uma conversa na barra lateral para começar</p>
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-slate-900">Selecione uma conversa</h3>
+                <p className="text-slate-500">Escolha uma conversa na barra lateral para começar</p>
               </div>
             </div>
           )}

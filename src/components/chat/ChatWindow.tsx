@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Send, 
   Paperclip, 
-  Smile, 
   MoreVertical, 
   Phone, 
   Video, 
@@ -16,7 +15,8 @@ import {
   Flag,
   Users,
   Bot,
-  User as UserIcon
+  User as UserIcon,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import QuickActions from './QuickActions';
@@ -57,14 +57,14 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
   const messages: Message[] = [
     {
       id: '1',
-      text: 'Olá! Sou o assistente virtual da Dohoo XT. Como posso ajudá-lo hoje?',
+      text: 'Olá! Sou o assistente virtual. Como posso ajudá-lo hoje?',
       timestamp: '14:20',
       sender: 'bot',
       status: 'read'
     },
     {
       id: '2',
-      text: 'Oi, gostaria de saber sobre meu pedido #12345',
+      text: 'Gostaria de saber sobre meu pedido #12345',
       timestamp: '14:21',
       sender: 'customer'
     },
@@ -116,9 +116,9 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
   const getSenderIcon = (sender: string) => {
     switch (sender) {
       case 'bot':
-        return <Bot className="h-4 w-4" />;
+        return <Bot className="h-3 w-3" />;
       case 'user':
-        return <UserIcon className="h-4 w-4" />;
+        return <UserIcon className="h-3 w-3" />;
       default:
         return null;
     }
@@ -127,7 +127,7 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
   const getSenderLabel = (sender: string) => {
     switch (sender) {
       case 'bot':
-        return 'IA Assistant';
+        return 'Assistente IA';
       case 'user':
         return 'Atendente';
       case 'customer':
@@ -140,36 +140,38 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Chat Header */}
-      <div className="bg-card border-b p-4 shadow-sm">
+      <div className="bg-card border-b px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg">
-              👨‍💼
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600">
+              JS
             </div>
             <div>
-              <h3 className="font-semibold">João Silva</h3>
+              <h3 className="font-semibold text-slate-900">João Silva</h3>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-muted-foreground">Online agora</span>
+                <span className="text-sm text-slate-500">Online agora</span>
               </div>
             </div>
-            <Badge variant="outline" className="ml-2">WhatsApp</Badge>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              WhatsApp
+            </Badge>
           </div>
           
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
               <Phone className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
               <Video className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
               <Star className="h-4 w-4" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -194,7 +196,7 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -205,28 +207,28 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
           >
             <div
               className={cn(
-                "max-w-xs lg:max-w-md rounded-lg shadow-sm",
+                "max-w-xs lg:max-w-md rounded-lg shadow-sm border",
                 message.sender === 'user'
-                  ? "bg-primary text-primary-foreground px-4 py-2"
+                  ? "bg-blue-600 text-white px-4 py-3 border-blue-600"
                   : message.sender === 'bot'
-                  ? "bg-blue-500 text-white px-4 py-2"
-                  : "bg-card border px-4 py-2"
+                  ? "bg-slate-100 text-slate-800 px-4 py-3 border-slate-200"
+                  : "bg-white border-slate-200 px-4 py-3"
               )}
             >
               {(message.sender === 'bot' || message.sender === 'user') && (
-                <div className="flex items-center gap-1 mb-1 text-xs opacity-80">
+                <div className="flex items-center gap-2 mb-2 text-xs opacity-70">
                   {getSenderIcon(message.sender)}
                   <span>{getSenderLabel(message.sender)}</span>
                 </div>
               )}
-              <p className="text-sm">{message.text}</p>
+              <p className="text-sm leading-relaxed">{message.text}</p>
               <div className={cn(
-                "flex items-center justify-between mt-1 text-xs",
-                message.sender === 'customer' ? "text-muted-foreground" : "opacity-80"
+                "flex items-center justify-between mt-2 text-xs",
+                message.sender === 'customer' ? "text-slate-500" : "opacity-70"
               )}>
                 <span>{message.timestamp}</span>
                 {message.sender === 'user' && message.status && (
-                  <span>
+                  <span className="text-xs">
                     {message.status === 'read' ? '✓✓' : 
                      message.status === 'delivered' ? '✓✓' : '✓'}
                   </span>
@@ -240,48 +242,46 @@ const ChatWindow = ({ chatId }: ChatWindowProps) => {
 
       {/* Quick Actions */}
       {showQuickActions && (
-        <div className="px-4">
+        <div className="px-6">
           <QuickActions onActionSelect={handleQuickAction} />
         </div>
       )}
 
       {/* Message Input */}
-      <div className="bg-card border-t p-4">
-        <div className="flex items-center gap-2">
+      <div className="bg-white border-t px-6 py-4">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowQuickActions(!showQuickActions)}
-            className={cn(showQuickActions && "bg-accent")}
+            className={cn(
+              "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
+              showQuickActions && "bg-slate-100 text-slate-900"
+            )}
           >
-            ⚡
+            <ChevronDown className={cn("h-4 w-4 transition-transform", showQuickActions && "rotate-180")} />
+            Ações Rápidas
           </Button>
           
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100">
             <Paperclip className="h-4 w-4" />
           </Button>
           
-          <div className="flex-1 relative">
+          <div className="flex-1">
             <Input
               placeholder="Digite sua mensagem..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="pr-10 bg-background"
+              className="bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2"
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
           </div>
           
           <Button
             onClick={handleSendMessage}
             disabled={!newMessage.trim()}
             size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Send className="h-4 w-4" />
           </Button>
