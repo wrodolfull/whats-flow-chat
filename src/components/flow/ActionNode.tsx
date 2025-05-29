@@ -7,15 +7,19 @@ import { Zap } from 'lucide-react';
 interface ActionNodeData {
   label: string;
   action?: string;
+  actionType?: string;
 }
 
 interface ActionNodeProps {
   data: ActionNodeData;
+  selected?: boolean;
 }
 
-const ActionNode = memo(({ data }: ActionNodeProps) => {
+const ActionNode = memo(({ data, selected }: ActionNodeProps) => {
   return (
-    <Card className="min-w-[200px] shadow-lg border-purple-500 border-2">
+    <Card className={`min-w-[200px] max-w-[300px] shadow-lg border-purple-500 border-2 ${
+      selected ? 'ring-2 ring-purple-300' : ''
+    }`}>
       <Handle
         type="target"
         position={Position.Top}
@@ -29,9 +33,17 @@ const ActionNode = memo(({ data }: ActionNodeProps) => {
           </div>
           <span className="font-semibold text-purple-700">Ação</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {data.action || 'Clique para definir ação'}
-        </p>
+        <div className="text-sm">
+          <div className="font-medium mb-1">{data.label}</div>
+          <div className="text-muted-foreground text-xs break-words">
+            {data.action || 'Clique para definir ação'}
+          </div>
+          {data.actionType && (
+            <div className="text-xs text-purple-600 mt-1">
+              Tipo: {data.actionType}
+            </div>
+          )}
+        </div>
       </div>
       
       <Handle

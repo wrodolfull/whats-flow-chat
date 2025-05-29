@@ -7,15 +7,19 @@ import { GitBranch } from 'lucide-react';
 interface ConditionNodeData {
   label: string;
   condition?: string;
+  conditionType?: string;
 }
 
 interface ConditionNodeProps {
   data: ConditionNodeData;
+  selected?: boolean;
 }
 
-const ConditionNode = memo(({ data }: ConditionNodeProps) => {
+const ConditionNode = memo(({ data, selected }: ConditionNodeProps) => {
   return (
-    <Card className="min-w-[200px] shadow-lg border-yellow-500 border-2">
+    <Card className={`min-w-[200px] max-w-[300px] shadow-lg border-yellow-500 border-2 ${
+      selected ? 'ring-2 ring-yellow-300' : ''
+    }`}>
       <Handle
         type="target"
         position={Position.Top}
@@ -29,9 +33,22 @@ const ConditionNode = memo(({ data }: ConditionNodeProps) => {
           </div>
           <span className="font-semibold text-yellow-700">Condição</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {data.condition || 'Clique para definir condição'}
-        </p>
+        <div className="text-sm">
+          <div className="font-medium mb-1">{data.label}</div>
+          <div className="text-muted-foreground text-xs break-words">
+            {data.condition || 'Clique para definir condição'}
+          </div>
+          {data.conditionType && (
+            <div className="text-xs text-yellow-600 mt-1">
+              Tipo: {data.conditionType}
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex justify-between px-4 pb-2">
+        <span className="text-xs text-green-600 font-medium">Sim</span>
+        <span className="text-xs text-red-600 font-medium">Não</span>
       </div>
       
       <Handle

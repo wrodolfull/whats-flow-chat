@@ -10,11 +10,14 @@ interface StartNodeData {
 
 interface StartNodeProps {
   data: StartNodeData;
+  selected?: boolean;
 }
 
-const StartNode = memo(({ data }: StartNodeProps) => {
+const StartNode = memo(({ data, selected }: StartNodeProps) => {
   return (
-    <Card className="min-w-[200px] shadow-lg border-green-500 border-2">
+    <Card className={`min-w-[200px] max-w-[300px] shadow-lg border-green-500 border-2 ${
+      selected ? 'ring-2 ring-green-300' : ''
+    }`}>
       <div className="p-4 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -22,7 +25,9 @@ const StartNode = memo(({ data }: StartNodeProps) => {
           </div>
           <span className="font-semibold text-green-700">Início</span>
         </div>
-        <p className="text-sm text-muted-foreground">{data.label}</p>
+        <div className="text-sm">
+          <div className="font-medium">{data.label}</div>
+        </div>
       </div>
       
       <Handle

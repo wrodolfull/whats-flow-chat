@@ -11,11 +11,14 @@ interface MessageNodeData {
 
 interface MessageNodeProps {
   data: MessageNodeData;
+  selected?: boolean;
 }
 
-const MessageNode = memo(({ data }: MessageNodeProps) => {
+const MessageNode = memo(({ data, selected }: MessageNodeProps) => {
   return (
-    <Card className="min-w-[200px] shadow-lg border-blue-500 border-2">
+    <Card className={`min-w-[200px] max-w-[300px] shadow-lg border-blue-500 border-2 ${
+      selected ? 'ring-2 ring-blue-300' : ''
+    }`}>
       <Handle
         type="target"
         position={Position.Top}
@@ -29,9 +32,12 @@ const MessageNode = memo(({ data }: MessageNodeProps) => {
           </div>
           <span className="font-semibold text-blue-700">Mensagem</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {data.message || 'Clique para editar mensagem'}
-        </p>
+        <div className="text-sm">
+          <div className="font-medium mb-1">{data.label}</div>
+          <div className="text-muted-foreground text-xs break-words">
+            {data.message || 'Clique para editar mensagem'}
+          </div>
+        </div>
       </div>
       
       <Handle

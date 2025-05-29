@@ -12,12 +12,16 @@ import {
   Edge,
   Node,
   BackgroundVariant,
+  OnSelectionChangeParams,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -28,7 +32,9 @@ import {
   Upload,
   Plus,
   Settings,
-  Zap
+  Zap,
+  Trash2,
+  FileText
 } from 'lucide-react';
 
 import StartNode from '@/components/flow/StartNode';
@@ -37,6 +43,7 @@ import ConditionNode from '@/components/flow/ConditionNode';
 import ActionNode from '@/components/flow/ActionNode';
 import EndNode from '@/components/flow/EndNode';
 import NodeToolbar from '@/components/flow/NodeToolbar';
+import NodeProperties from '@/components/flow/NodeProperties';
 import { flowsAPI } from '@/api/flows';
 
 const nodeTypes = {
@@ -51,7 +58,7 @@ const initialNodes: Node[] = [
   {
     id: '1',
     type: 'start',
-    position: { x: 250, y: 0 },
+    position: { x: 250, y: 100 },
     data: { label: 'Início do Atendimento' },
   },
 ];
@@ -61,10 +68,12 @@ const initialEdges: Edge[] = [];
 const FlowBuilder = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState('Novo Fluxo');
+  const [flowDescription, setFlowDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [flows, setFlows] = useState<any[]>([]);
   const { toast } = useToast();
 
   const onConnect = useCallback(
@@ -72,23 +81,39 @@ const FlowBuilder = () => {
     [setEdges]
   );
 
-  // Load flow structure when flowId changes
-  useEffect(() => {
-    if (currentFlowId) {
-      loadFlowStructure(currentFlowId);
+  const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
+    if (params.nodes.length === 1) {
+      setSelectedNode(params.nodes[0]);
+    } else {
+      setSelectedNode(null);
     }
-  }, [currentFlowId]);
+  }, []);
+
+  // Load saved flows from localStorage on mount
+  useEffect(() => {
+    loadSavedFlows();
+  }, []);
+
+  const loadSavedFlows = () => {
+    const savedFlows = localStorage.getItem('flows');
+    if (savedFlows) {
+      setFlows(JSON.parse(savedFlows));
+    }
+  };
 
   const addNode = (type: string) => {
     const newNode: Node = {
       id: `${Date.now()}`,
       type,
-      position: { x: Math.random() * 300 + 100, y: Math.random() * 300 + 100 },
+      position: { 
+        x: Math.random() * 300 + 100, 
+        y: Math.random() * 300 + 200 
+      },
       data: { 
         label: getNodeLabel(type),
-        message: '',
-        conditions: [],
-        actions: []
+        message: type === 'message' ? 'Digite sua mensagem aqui...' : '',
+        condition: type === 'condition' ? 'Digite a condição aqui...' : '',
+        action: type === 'action' ? 'Digite a ação aqui...' : '',
       },
     };
     setNodes((nds) => [...nds, newNode]);
@@ -105,140 +130,127 @@ const FlowBuilder = () => {
     }
   };
 
-  const saveFlow = async () => {
-    setIsSaving(true);
-    try {
-      let flowId = currentFlowId;
-      
-      // Create flow if it doesn't exist
-      if (!flowId) {
-        const flowData = await flowsAPI.createFlow({
-          name: flowName,
-          description: 'Fluxo criado no construtor visual',
-          status: 'draft',
-          created_by: '', // This will be set by the backend
-          trigger_conditions: {},
-          metadata: {}
-        });
-        flowId = flowData.id;
-        setCurrentFlowId(flowId);
-      }
-
-      // Save flow structure
-      await flowsAPI.saveFlowStructure(flowId, nodes, edges);
-      
-      toast({
-        title: "Fluxo salvo!",
-        description: "O fluxo foi salvo com sucesso.",
-      });
-    } catch (error) {
-      console.error('Error saving flow:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Erro ao salvar o fluxo. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+  const updateNodeData = (nodeId: string, data: any) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...data } }
+          : node
+      )
+    );
   };
 
-  const loadFlowStructure = async (flowId: string) => {
-    setIsLoading(true);
-    try {
-      const structure = await flowsAPI.getFlowStructure(flowId);
-      
-      // Convert database nodes to React Flow nodes
-      const flowNodes = structure.nodes.map((node: any) => ({
-        id: node.node_id,
-        type: node.type,
-        position: node.position,
-        data: node.data
-      }));
-
-      // Convert database edges to React Flow edges
-      const flowEdges = structure.edges.map((edge: any) => ({
-        id: edge.edge_id,
-        source: edge.source,
-        target: edge.target,
-        sourceHandle: edge.source_handle,
-        targetHandle: edge.target_handle,
-        data: edge.data
-      }));
-
-      setNodes(flowNodes);
-      setEdges(flowEdges);
-    } catch (error) {
-      console.error('Error loading flow structure:', error);
+  const deleteSelectedNode = () => {
+    if (selectedNode && selectedNode.type !== 'start') {
+      setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
+      setEdges((eds) => eds.filter((edge) => 
+        edge.source !== selectedNode.id && edge.target !== selectedNode.id
+      ));
+      setSelectedNode(null);
       toast({
-        title: "Erro ao carregar",
-        description: "Erro ao carregar a estrutura do fluxo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createNewFlow = async () => {
-    try {
-      const flowData = await flowsAPI.createFlow({
-        name: 'Novo Fluxo',
-        description: 'Fluxo criado no construtor visual',
-        status: 'draft',
-        created_by: '', // This will be set by the backend
-        trigger_conditions: {},
-        metadata: {}
-      });
-      
-      setCurrentFlowId(flowData.id);
-      setFlowName(flowData.name);
-      setNodes(initialNodes);
-      setEdges(initialEdges);
-      
-      toast({
-        title: "Novo fluxo criado!",
-        description: "Um novo fluxo foi criado com sucesso.",
-      });
-    } catch (error) {
-      console.error('Error creating flow:', error);
-      toast({
-        title: "Erro ao criar fluxo",
-        description: "Erro ao criar um novo fluxo. Tente novamente.",
-        variant: "destructive",
+        title: "Nó removido",
+        description: "O nó foi removido do fluxo.",
       });
     }
   };
 
-  const testFlow = async () => {
-    if (!currentFlowId) {
-      toast({
-        title: "Salve o fluxo primeiro",
-        description: "Você precisa salvar o fluxo antes de testá-lo.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const saveFlowLocally = () => {
+    const flowData = {
+      id: Date.now().toString(),
+      name: flowName,
+      description: flowDescription,
+      nodes,
+      edges,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
-    try {
-      const result = await flowsAPI.testFlow(currentFlowId, {
-        input_message: 'Teste',
-        contact_number: '+5511999999999',
-        context: {}
-      });
-      
-      toast({
-        title: "Teste executado!",
-        description: `Resultado do teste: ${result.status}`,
-      });
-    } catch (error) {
-      console.error('Error testing flow:', error);
-      toast({
-        title: "Erro no teste",
-        description: "Erro ao executar o teste do fluxo.",
-        variant: "destructive",
-      });
+    const savedFlows = localStorage.getItem('flows');
+    const flowsList = savedFlows ? JSON.parse(savedFlows) : [];
+    flowsList.push(flowData);
+    localStorage.setItem('flows', JSON.stringify(flowsList));
+    
+    setFlows(flowsList);
+    
+    toast({
+      title: "Fluxo salvo localmente!",
+      description: "O fluxo foi salvo no armazenamento local.",
+    });
+  };
+
+  const loadFlow = (flowData: any) => {
+    setFlowName(flowData.name);
+    setFlowDescription(flowData.description);
+    setNodes(flowData.nodes);
+    setEdges(flowData.edges);
+    setSelectedNode(null);
+    
+    toast({
+      title: "Fluxo carregado!",
+      description: `Fluxo "${flowData.name}" foi carregado.`,
+    });
+  };
+
+  const exportFlow = () => {
+    const flowData = {
+      name: flowName,
+      description: flowDescription,
+      nodes,
+      edges,
+      exportedAt: new Date().toISOString(),
+    };
+
+    const dataStr = JSON.stringify(flowData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `${flowName.replace(/\s+/g, '_')}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const importFlow = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const flowData = JSON.parse(e.target?.result as string);
+          loadFlow(flowData);
+        } catch (error) {
+          toast({
+            title: "Erro ao importar",
+            description: "Arquivo inválido ou corrompido.",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsText(file);
     }
+  };
+
+  const createNewFlow = () => {
+    setFlowName('Novo Fluxo');
+    setFlowDescription('');
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+    setSelectedNode(null);
+    
+    toast({
+      title: "Novo fluxo criado!",
+      description: "Um novo fluxo foi iniciado.",
+    });
+  };
+
+  const clearAllFlows = () => {
+    localStorage.removeItem('flows');
+    setFlows([]);
+    toast({
+      title: "Fluxos limpos",
+      description: "Todos os fluxos salvos foram removidos.",
+    });
   };
 
   return (
@@ -251,7 +263,7 @@ const FlowBuilder = () => {
             <h1 className="text-xl font-semibold">Construtor de Fluxos</h1>
             <Badge variant="outline">
               <Zap className="h-3 w-3 mr-1" />
-              {currentFlowId ? `ID: ${currentFlowId.slice(0, 8)}` : 'Novo Fluxo'}
+              Local
             </Badge>
           </div>
           
@@ -263,94 +275,157 @@ const FlowBuilder = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={saveFlow}
+              onClick={saveFlowLocally}
               disabled={isSaving}
             >
               <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Salvando...' : 'Salvar'}
+              Salvar Local
             </Button>
-            <Button size="sm" onClick={testFlow}>
-              <Play className="h-4 w-4 mr-2" />
-              Testar Fluxo
+            <Button variant="outline" size="sm" onClick={exportFlow}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <label>
+                <Upload className="h-4 w-4 mr-2" />
+                Importar
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importFlow}
+                  className="hidden"
+                />
+              </label>
+            </Button>
+            {selectedNode && selectedNode.type !== 'start' && (
+              <Button variant="destructive" size="sm" onClick={deleteSelectedNode}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Nó
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
       <div className="flex-1 flex">
         {/* Toolbar Lateral */}
-        <div className="w-64 bg-card border-r p-4">
+        <div className="w-64 bg-card border-r p-4 flex flex-col gap-4">
           <NodeToolbar onAddNode={addNode} />
+          
+          {/* Fluxos Salvos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Fluxos Salvos
+                </span>
+                {flows.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearAllFlows}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {flows.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum fluxo salvo
+                </p>
+              ) : (
+                flows.map((flow) => (
+                  <Button
+                    key={flow.id}
+                    variant="ghost"
+                    className="w-full justify-start h-auto p-2"
+                    onClick={() => loadFlow(flow)}
+                  >
+                    <div className="text-left">
+                      <div className="font-medium text-sm">{flow.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(flow.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </Button>
+                ))
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Área do Flow */}
         <div className="flex-1">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Carregando fluxo...</p>
-              </div>
-            </div>
-          ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              nodeTypes={nodeTypes}
-              fitView
-              className="bg-background"
-            >
-              <Background 
-                variant={BackgroundVariant.Dots} 
-                gap={20} 
-                size={1}
-                className="opacity-50"
-              />
-              <Controls className="bg-card border rounded-lg shadow-sm" />
-              <MiniMap 
-                className="bg-card border rounded-lg shadow-sm"
-                nodeColor="#8b5cf6"
-                maskColor="rgba(0, 0, 0, 0.1)"
-              />
-            </ReactFlow>
-          )}
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-background"
+            deleteKeyCode={['Backspace', 'Delete']}
+          >
+            <Background 
+              variant={BackgroundVariant.Dots} 
+              gap={20} 
+              size={1}
+              className="opacity-50"
+            />
+            <Controls className="bg-card border rounded-lg shadow-sm" />
+            <MiniMap 
+              className="bg-card border rounded-lg shadow-sm"
+              nodeColor="#8b5cf6"
+              maskColor="rgba(0, 0, 0, 0.1)"
+            />
+          </ReactFlow>
         </div>
 
         {/* Painel de Propriedades */}
-        <div className="w-80 bg-card border-l p-4">
+        <div className="w-80 bg-card border-l p-4 flex flex-col gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Propriedades
+                Configurações do Fluxo
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Nome do Fluxo</label>
-                  <input
-                    type="text"
-                    value={flowName}
-                    onChange={(e) => setFlowName(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                  />
-                </div>
-                {currentFlowId && (
-                  <div>
-                    <label className="text-sm font-medium">ID do Fluxo</label>
-                    <p className="text-sm text-muted-foreground mt-1">{currentFlowId}</p>
-                  </div>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  Selecione um nó para editar suas propriedades
-                </p>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="flow-name">Nome do Fluxo</Label>
+                <Input
+                  id="flow-name"
+                  value={flowName}
+                  onChange={(e) => setFlowName(e.target.value)}
+                  placeholder="Digite o nome do fluxo"
+                />
+              </div>
+              <div>
+                <Label htmlFor="flow-description">Descrição</Label>
+                <Textarea
+                  id="flow-description"
+                  value={flowDescription}
+                  onChange={(e) => setFlowDescription(e.target.value)}
+                  placeholder="Descreva o propósito deste fluxo"
+                  rows={3}
+                />
               </div>
             </CardContent>
           </Card>
+
+          {/* Propriedades do Nó Selecionado */}
+          {selectedNode && (
+            <NodeProperties 
+              node={selectedNode} 
+              onUpdateNode={updateNodeData} 
+            />
+          )}
         </div>
       </div>
     </div>

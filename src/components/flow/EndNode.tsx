@@ -6,15 +6,19 @@ import { Square } from 'lucide-react';
 
 interface EndNodeData {
   label: string;
+  endType?: string;
 }
 
 interface EndNodeProps {
   data: EndNodeData;
+  selected?: boolean;
 }
 
-const EndNode = memo(({ data }: EndNodeProps) => {
+const EndNode = memo(({ data, selected }: EndNodeProps) => {
   return (
-    <Card className="min-w-[200px] shadow-lg border-red-500 border-2">
+    <Card className={`min-w-[200px] max-w-[300px] shadow-lg border-red-500 border-2 ${
+      selected ? 'ring-2 ring-red-300' : ''
+    }`}>
       <Handle
         type="target"
         position={Position.Top}
@@ -28,7 +32,14 @@ const EndNode = memo(({ data }: EndNodeProps) => {
           </div>
           <span className="font-semibold text-red-700">Fim</span>
         </div>
-        <p className="text-sm text-muted-foreground">{data.label}</p>
+        <div className="text-sm">
+          <div className="font-medium mb-1">{data.label}</div>
+          {data.endType && (
+            <div className="text-xs text-red-600">
+              Tipo: {data.endType}
+            </div>
+          )}
+        </div>
       </div>
     </Card>
   );
