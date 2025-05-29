@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
@@ -22,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -34,7 +34,8 @@ import {
   Settings,
   Zap,
   Trash2,
-  FileText
+  FileText,
+  Bot
 } from 'lucide-react';
 
 import StartNode from '@/components/flow/StartNode';
@@ -71,9 +72,11 @@ const FlowBuilder = () => {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState('Novo Fluxo');
   const [flowDescription, setFlowDescription] = useState('');
+  const [selectedChatbot, setSelectedChatbot] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [flows, setFlows] = useState<any[]>([]);
+  const [chatbots, setChatbots] = useState<any[]>([]);
   const { toast } = useToast();
 
   const onConnect = useCallback(
@@ -89,15 +92,23 @@ const FlowBuilder = () => {
     }
   }, []);
 
-  // Load saved flows from localStorage on mount
+  // Load saved flows and chatbots from localStorage on mount
   useEffect(() => {
     loadSavedFlows();
+    loadChatbots();
   }, []);
 
   const loadSavedFlows = () => {
     const savedFlows = localStorage.getItem('flows');
     if (savedFlows) {
       setFlows(JSON.parse(savedFlows));
+    }
+  };
+
+  const loadChatbots = () => {
+    const savedChatbots = localStorage.getItem('chatbots');
+    if (savedChatbots) {
+      setChatbots(JSON.parse(savedChatbots));
     }
   };
 
@@ -114,6 +125,8 @@ const FlowBuilder = () => {
         message: type === 'message' ? 'Digite sua mensagem aqui...' : '',
         condition: type === 'condition' ? 'Digite a condição aqui...' : '',
         action: type === 'action' ? 'Digite a ação aqui...' : '',
+        chatbotId: type === 'action' ? '' : undefined,
+        department: type === 'action' ? '' : undefined,
       },
     };
     setNodes((nds) => [...nds, newNode]);
@@ -159,6 +172,7 @@ const FlowBuilder = () => {
       id: Date.now().toString(),
       name: flowName,
       description: flowDescription,
+      chatbotId: selectedChatbot,
       nodes,
       edges,
       createdAt: new Date().toISOString(),
@@ -181,6 +195,7 @@ const FlowBuilder = () => {
   const loadFlow = (flowData: any) => {
     setFlowName(flowData.name);
     setFlowDescription(flowData.description);
+    setSelectedChatbot(flowData.chatbotId || '');
     setNodes(flowData.nodes);
     setEdges(flowData.edges);
     setSelectedNode(null);
@@ -195,6 +210,7 @@ const FlowBuilder = () => {
     const flowData = {
       name: flowName,
       description: flowDescription,
+      chatbotId: selectedChatbot,
       nodes,
       edges,
       exportedAt: new Date().toISOString(),
@@ -234,6 +250,7 @@ const FlowBuilder = () => {
   const createNewFlow = () => {
     setFlowName('Novo Fluxo');
     setFlowDescription('');
+    setSelectedChatbot('');
     setNodes(initialNodes);
     setEdges(initialEdges);
     setSelectedNode(null);
@@ -416,14 +433,39 @@ const FlowBuilder = () => {
                   rows={3}
                 />
               </div>
+              <div>
+                <Label htmlFor="chatbot-select">Chatbot Responsável</Label>
+                <Select value={selectedChatbot} onValueChange={setSelectedChatbot}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um chatbot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chatbots.map((chatbot) => (
+                      <SelectItem key={chatbot.id} value={chatbot.id}>
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-4 w-4" />
+                          {chatbot.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedChatbot && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Este chatbot será usado para interagir com os clientes neste fluxo
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Propriedades do Nó Selecionado */}
           {selectedNode && (
             <NodeProperties 
-              node={selectedNode} 
-              onUpdateNode={updateNodeData} 
+              selectedNode={selectedNode} 
+              onUpdateNode={updateNodeData}
+              onClose={() => setSelectedNode(null)}
+              chatbots={chatbots}
             />
           )}
         </div>

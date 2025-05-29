@@ -6,15 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Bot, Users } from 'lucide-react';
 
 interface NodePropertiesProps {
   selectedNode: any;
   onUpdateNode: (nodeId: string, data: any) => void;
   onClose: () => void;
+  chatbots?: any[];
 }
 
-const NodeProperties = ({ selectedNode, onUpdateNode, onClose }: NodePropertiesProps) => {
+const NodeProperties = ({ selectedNode, onUpdateNode, onClose, chatbots = [] }: NodePropertiesProps) => {
   if (!selectedNode) return null;
 
   const handleUpdate = (field: string, value: string) => {
@@ -56,9 +57,76 @@ const NodeProperties = ({ selectedNode, onUpdateNode, onClose }: NodePropertiesP
             <SelectItem value="api">API Call</SelectItem>
             <SelectItem value="database">Banco de Dados</SelectItem>
             <SelectItem value="email">Enviar Email</SelectItem>
+            <SelectItem value="chatbot">Transferir para Chatbot</SelectItem>
+            <SelectItem value="department">Transferir para Departamento</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {selectedNode.data.actionType === 'chatbot' && (
+        <div className="space-y-2">
+          <Label htmlFor="chatbot">Chatbot</Label>
+          <Select
+            value={selectedNode.data.chatbotId || ''}
+            onValueChange={(value) => handleUpdate('chatbotId', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um chatbot" />
+            </SelectTrigger>
+            <SelectContent>
+              {chatbots.map((chatbot) => (
+                <SelectItem key={chatbot.id} value={chatbot.id}>
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
+                    {chatbot.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {selectedNode.data.actionType === 'department' && (
+        <div className="space-y-2">
+          <Label htmlFor="department">Departamento</Label>
+          <Select
+            value={selectedNode.data.department || ''}
+            onValueChange={(value) => handleUpdate('department', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vendas">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Vendas
+                </div>
+              </SelectItem>
+              <SelectItem value="suporte">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Suporte Técnico
+                </div>
+              </SelectItem>
+              <SelectItem value="financeiro">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Financeiro
+                </div>
+              </SelectItem>
+              <SelectItem value="atendimento">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Atendimento Geral
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="action">Configuração da Ação</Label>
         <Textarea
@@ -88,6 +156,7 @@ const NodeProperties = ({ selectedNode, onUpdateNode, onClose }: NodePropertiesP
             <SelectItem value="number">Comparação numérica</SelectItem>
             <SelectItem value="regex">Expressão regular</SelectItem>
             <SelectItem value="webhook">Webhook response</SelectItem>
+            <SelectItem value="intent">Intenção do usuário</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -127,13 +196,13 @@ const NodeProperties = ({ selectedNode, onUpdateNode, onClose }: NodePropertiesP
 
   const renderNodeSpecificFields = () => {
     switch (selectedNode.type) {
-      case 'messageNode':
+      case 'message':
         return renderMessageNodeFields();
-      case 'actionNode':
+      case 'action':
         return renderActionNodeFields();
-      case 'conditionNode':
+      case 'condition':
         return renderConditionNodeFields();
-      case 'endNode':
+      case 'end':
         return renderEndNodeFields();
       default:
         return null;
@@ -141,7 +210,7 @@ const NodeProperties = ({ selectedNode, onUpdateNode, onClose }: NodePropertiesP
   };
 
   return (
-    <Card className="w-80 p-4 absolute right-4 top-4 z-50 bg-background border shadow-lg">
+    <Card className="w-full p-4 bg-background border shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Propriedades do Nó</h3>
         <Button variant="ghost" size="sm" onClick={onClose}>

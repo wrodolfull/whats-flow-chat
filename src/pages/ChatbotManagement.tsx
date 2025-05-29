@@ -1,11 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Settings, Trash2, Bot, MessageSquare, Users, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CreateChatbotModal from '@/components/modals/CreateChatbotModal';
+import { getChatbots, saveChatbot, deleteChatbot, Chatbot } from '@/utils/chatbotStorage';
 
 interface Chatbot {
   id: string;
@@ -23,54 +23,14 @@ interface Chatbot {
 }
 
 const ChatbotManagement = () => {
-  const [chatbots, setChatbots] = useState<Chatbot[]>([
-    {
-      id: '1',
-      name: 'Suporte Geral',
-      description: 'Chatbot para atendimento geral e suporte técnico',
-      model: 'gpt-4o',
-      systemPrompt: 'Você é um assistente de suporte técnico amigável e prestativo.',
-      status: 'active',
-      assignedNumbers: ['+55 11 99999-9999', '+55 11 88888-8888'],
-      totalConversations: 1247,
-      avgResponseTime: '1.2s',
-      voiceEnabled: true,
-      fileHandling: true,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Vendas',
-      description: 'Bot especializado em vendas e conversão de leads',
-      model: 'gpt-4o-mini',
-      systemPrompt: 'Você é um consultor de vendas experiente focado em conversão.',
-      status: 'active',
-      assignedNumbers: ['+55 11 77777-7777'],
-      totalConversations: 856,
-      avgResponseTime: '0.8s',
-      voiceEnabled: false,
-      fileHandling: true,
-      createdAt: '2024-01-10'
-    },
-    {
-      id: '3',
-      name: 'Atendimento Técnico',
-      description: 'Especialista em problemas técnicos complexos',
-      model: 'gpt-4o',
-      systemPrompt: 'Você é um especialista técnico que resolve problemas complexos.',
-      status: 'training',
-      assignedNumbers: [],
-      totalConversations: 0,
-      avgResponseTime: '-',
-      voiceEnabled: true,
-      fileHandling: true,
-      createdAt: '2024-01-20'
-    }
-  ]);
-
+  const [chatbots, setChatbots] = useState<Chatbot[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBot, setEditingBot] = useState<Chatbot | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setChatbots(getChatbots());
+  }, []);
 
   const handleCreateBot = (botData: Omit<Chatbot, 'id' | 'assignedNumbers' | 'totalConversations' | 'avgResponseTime' | 'createdAt'>) => {
     const newBot: Chatbot = {
@@ -82,7 +42,8 @@ const ChatbotManagement = () => {
       createdAt: new Date().toISOString().split('T')[0]
     };
     
-    setChatbots(prev => [...prev, newBot]);
+    saveChatbot(newBot);
+    setChatbots(getChatbots());
     setShowCreateModal(false);
     toast({
       title: "Chatbot criado!",
@@ -92,11 +53,13 @@ const ChatbotManagement = () => {
 
   const handleEditBot = (botData: Omit<Chatbot, 'id' | 'assignedNumbers' | 'totalConversations' | 'avgResponseTime' | 'createdAt'>) => {
     if (editingBot) {
-      setChatbots(prev => prev.map(bot => 
-        bot.id === editingBot.id 
-          ? { ...bot, ...botData }
-          : bot
-      ));
+      const updatedBot: Chatbot = {
+        ...editingBot,
+        ...botData
+      };
+      
+      saveChatbot(updatedBot);
+      setChatbots(getChatbots());
       setEditingBot(null);
       setShowCreateModal(false);
       toast({
@@ -107,7 +70,8 @@ const ChatbotManagement = () => {
   };
 
   const handleDeleteBot = (id: string) => {
-    setChatbots(prev => prev.filter(bot => bot.id !== id));
+    deleteChatbot(id);
+    setChatbots(getChatbots());
     toast({
       title: "Chatbot removido!",
       description: "Chatbot removido com sucesso.",
@@ -208,12 +172,12 @@ const ChatbotManagement = () => {
                 <div className="flex gap-2 flex-wrap">
                   {bot.voiceEnabled && (
                     <Badge variant="outline" className="text-xs">
-                      🎤 Voz
+                      Voz
                     </Badge>
                   )}
                   {bot.fileHandling && (
                     <Badge variant="outline" className="text-xs">
-                      📎 Arquivos
+                      Arquivos
                     </Badge>
                   )}
                 </div>
